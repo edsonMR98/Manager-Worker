@@ -7,16 +7,16 @@ import (
 	"bufio"
 	"fmt"
 	//"log"
-	"os/exec"
+	//"os/exec"
 	"strconv"
 	//"bytes"
 	"strings"
 )
-// Define el tipo de dato del objeto que sera json (URLS)
+// Url Define el tipo de dato del objeto que sera json (URLS)
 type Url struct {
 	Urls []string
 }
-// Define el tipo de dato del objeto que sera json (Lat,Long,Elev)
+// Geo Define el tipo de dato del objeto que sera json (Lat,Long,Elev)
 type Geo struct {
 	Geolocs []string
 }
