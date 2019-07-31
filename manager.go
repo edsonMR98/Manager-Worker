@@ -7,9 +7,9 @@ import (
 	"bufio"
 	"fmt"
 	//"log"
-	//"os/exec"
+	"os/exec"
 	"strconv"
-	//"bytes"
+	"bytes"
 	"strings"
 )
 // Url Define el tipo de dato del objeto que sera json (URLS)
@@ -19,6 +19,29 @@ type Url struct {
 // Geo Define el tipo de dato del objeto que sera json (Lat,Long,Elev)
 type Geo struct {
 	Geolocs []string
+}
+
+// containerUp crea, levanta un worker (contenedor), y le da trabajo
+// j: Json tipo string, es el trabajo que sera dado al worker (urls)
+// co: Json tipo string, son los datos (Lat, Lon, Elev) de cada estacion, que sera gregado a cada url descargado
+func containerUp(j string, co string) {
+	//vol := "C:\\Users\\JOSE\\Desktop\\Project\\pruebas\\data:/usr/src/app/data"
+	//c, err := exec.Command("docker", "run", "--name", "extractor", "--rm", "-v", vol, "dataextractor:v1", "-j", j, "-c", co).Output()
+	/*_, err := exec.Command("python", "worker.py", "-j", j, "-c", co).Output()
+	if err != nil {
+		log.Fatal(err)
+	}*/
+	c := exec.Command("python", "worker.py", "-j", j, "-c", co)
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	c.Stdout = &out
+	c.Stderr = &stderr
+	err := c.Run()
+	if err != nil {
+		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+    	return
+	}
+	//fmt.Printf("%s", c)
 }
 
 func main() {
@@ -63,8 +86,10 @@ func main() {
 					jUrls, _ := json.Marshal(url) // Create a json URLS
 					jGeos, _ := json.Marshal(geo) // Create a json Geos
 					
-					fmt.Println(string(jUrls))
-					fmt.Println(string(jGeos))
+					//fmt.Println(string(jUrls))
+					//fmt.Println(string(jGeos))
+
+					go containerUp(string(jUrls), string(jGeos)) // Levantamos workers (contenedores)
 
 					urls = nil // Clear []urls to fill again with new urls
 					geos = nil // Clear []geos to fill again with new geos
