@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from ftplib import FTP
+from os import remove
 import gzip
 import io
 import argparse
@@ -13,8 +14,15 @@ def DownloadFileFTP(host, filename, outputFilename='', user='', passw='', buffer
         ftp.login()
         if outputFilename == '':
             outputFilename = filename.split('/')[-1]
-        with open(outputFilename, 'wb') as newFile:
-            ftp.retrbinary('RETR ' + filename, newFile.write, buffer)
+        try:
+            with open(outputFilename, 'wb') as newFile:
+                ftp.retrbinary('RETR ' + filename, newFile.write, buffer)
+            print("Downloaded file from {} ..".format(filename))
+
+            DecompressGzFile(outputFilename, outputFilename.replace('gz', 'txt'))
+            print("Decompresed file {} ..".format(outputFilename))
+        except:
+            remove(outputFilename)
 
 def DecompressGzFile(filename, outputFilename):
     with open(outputFilename, 'wb') as newFile:
@@ -49,6 +57,7 @@ def main():
     args = parser.parse_args()
 
     files = []
+    geos = []
     path = './data'
     host = 'ftp.ncdc.noaa.gov'
     user = ''
@@ -86,13 +95,8 @@ def main():
     startTime = time.time()
     for file, geo in zip(files, geos):
         downloadedFilename = path + '/' + file.split('/')[-1].replace(".op.gz", geo + ".op.gz")
-        decompressedFilename = downloadedFilename.replace('gz', 'txt')
 
-        print("Downloading file from {} ..".format(file))
         DownloadFileFTP(host, file, downloadedFilename, user=user, passw=passwd)
-
-        print("Decompressing file {} ..".format(downloadedFilename))
-        DecompressGzFile(downloadedFilename, decompressedFilename)
         
     endTime = time.time()
     print("Execution time {} sec".format(endTime - startTime))
